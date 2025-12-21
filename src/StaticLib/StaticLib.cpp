@@ -11,11 +11,24 @@ static unsigned int hash_func(unsigned int key, int num)
 
 static unsigned int get_hash(const hash* h, unsigned int key)
 {
-	if (h == NULL) return ~0;
+	if (h == NULL) return ~0;		//~0→~はnot演算子(ビットを反転)
 	if (key == ~0) return ~0;
 
 	// ToDo: ハッシュ関数としてhash_funcを使った
 	// オープンアドレス法によるハッシュ値を求める
+
+	unsigned int start = hash_func(key, h->max_size);
+
+	for (unsigned int i = 0; i < h->max_size; i++)
+	{
+		unsigned int idx = (start + i) % h->max_size;
+
+		if (h->nodes[idx].key == ~0 || h->nodes[idx].key == key) 
+		{
+			return idx;
+		}
+	}
+
 	return ~0;
 }
 
@@ -55,19 +68,44 @@ bool add(hash* h, unsigned int key, const char* value)
 {
 	if (h == NULL) return false;
 	if (h->max_size == ~0) return false;
-	if (key == ~0) return NULL;
+	if (key == ~0) return false;
 
 	// ToDo: ハッシュ関数としてhash_funcを使った
 	// オープンアドレス法によりキーを追加
-	return false;
+	unsigned int idx = get_hash(h, key);
+	if (idx == ~0) return false;
+
+	h->nodes[idx].key = key;
+	strcpy_s(h->nodes[idx].value, sizeof(h->nodes[idx].value), value);
+
+	return true;
 }
 
 // keyの値を見てノードを検索して、値を取得する(なければNULLを返す)
 const char* get(const hash* h, unsigned int key)
 {
 	if (key == ~0) return NULL;
-
+	if (h == NULL) return NULL;
 	// ToDo: keyから値が格納されている場所を求め、値の場所を返す
+
+	unsigned int start = hash_func(key, h->max_size);
+
+	for (unsigned int i = 0; i < h->max_size; i++) 
+	{
+		unsigned int idx = (start + i) % h->max_size;
+
+		
+		if (h->nodes[idx].key == ~0)
+		{
+			return NULL;
+		}
+
+		if (h->nodes[idx].key == key)
+		{
+			return h->nodes[idx].value;
+		}
+	}
+
 	return NULL;
 }
 
